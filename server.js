@@ -134,8 +134,9 @@ app.post(
   }
 );
 
-app.get('/mypage', 로그인했니, function(요청, 응답){
-  응답.render('mypage.ejs');
+app.get("/mypage", 로그인했니, function (요청, 응답) {
+  console.log(요청.user);
+  응답.render("mypage.ejs", { login: 요청.user });
 });
 
 function 로그인했니(요청, 응답, next) {
@@ -179,5 +180,7 @@ passport.serializeUser(function (user, done) {
 });
 
 passport.deserializeUser(function (아이디, done) {
-  done(null, {});
+  db.collection("login").findOne({ id: 아이디 }, function (에러, 결과) {
+    done(null, { 결과 });
+  });
 });
