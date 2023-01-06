@@ -134,6 +134,18 @@ app.post(
   }
 );
 
+app.get('/mypage', 로그인했니, function(요청, 응답){
+  응답.render('mypage.ejs');
+});
+
+function 로그인했니(요청, 응답, next) {
+  if (요청.user) {
+    next();
+  } else {
+    응답.send("로그인안했네요");
+  }
+}
+
 passport.use(
   new LocalStrategy(
     {
