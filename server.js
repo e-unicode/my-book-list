@@ -26,29 +26,6 @@ app.get("/write", function (요청, 응답) {
   응답.render("write.ejs");
 });
 
-app.post("/add", function (요청, 응답) {
-  응답.send("전송완료");
-  db.collection("counter").findOne({ name: "postCount" }, function (에러, 결과) {
-    console.log(결과.totalPost);
-    var 총게시물갯수 = 결과.totalPost;
-    db.collection("post").insertOne(
-      {
-        _id: 총게시물갯수 + 1,
-        title: 요청.body.title,
-        artist: 요청.body.artist,
-      },
-      function (에러, 결과) {
-        console.log("저장완료");
-        db.collection("counter").updateOne({ name: "postCount" }, { $inc: { totalPost: 1 } }, function (에러, 결과) {
-          if (에러) {
-            return console.log(에러);
-          }
-        });
-      }
-    );
-  });
-});
-
 app.get("/list", function (요청, 응답) {
   db.collection("post")
     .find()
@@ -78,15 +55,6 @@ app.get("/search", (요청, 응답) => {
     });
 });
 
-app.delete("/delete", function (요청, 응답) {
-  console.log(요청.body);
-  요청.body._id = parseInt(요청.body._id);
-  db.collection("post").deleteOne(요청.body, function (에러, 결과) {
-    console.log("삭제완료");
-    응답.status(200).send({ message: "success" });
-  });
-});
-
 app.get("/detail/:id", function (요청, 응답) {
   요청.params.id = parseInt(요청.params.id);
   db.collection("post").findOne({ _id: 요청.params.id }, function (에러, 결과) {
@@ -111,17 +79,6 @@ app.put("/edit", function (요청, 응답) {
       응답.redirect("/list");
     }
   );
-});
-
-app.get("/member", function (요청, 응답) {
-  응답.render("member.ejs");
-});
-
-app.post("/member", function (요청, 응답) {
-  응답.redirect("/login");
-  db.collection("login").insertOne({ id: 요청.body.email, pw: 요청.body.pw }, function (에러, 결과) {
-    console.log("가입완료");
-  });
 });
 
 const passport = require("passport");
@@ -183,5 +140,55 @@ passport.serializeUser(function (user, done) {
 passport.deserializeUser(function (아이디, done) {
   db.collection("login").findOne({ id: 아이디 }, function (에러, 결과) {
     done(null, 결과);
+  });
+});
+
+app.post("/add", function (요청, 응답) {
+  응답.send("전송완료");
+  db.collection("counter").findOne({ name: "postCount" }, function (에러, 결과) {
+    console.log(결과.totalPost);
+    var 총게시물갯수 = 결과.totalPost;
+    db.collection("post").insertOne(
+      {
+        _id: 총게시물갯수 + 1,
+        title: 요청.body.title,
+        artist: 요청.body.artist,
+        작성자: 요청.user._id,
+      },
+      function (에러, 결과) {
+        console.log("저장완료");
+        db.collection("counter").updateOne({ name: "postCount" }, { $inc: { totalPost: 1 } }, function (에러, 결과) {
+          if (에러) {
+            return console.log(에러);
+          }
+        });
+      }
+    );
+  });
+});
+
+app.delete("/delete", function (요청, 응답) {
+  console.log(요청.body);
+  요청.body._id = parseInt(요청.body._id);
+
+  var 삭제할데이터 = { _id: 요청.body._id, 작성자: 요청.user._id };
+
+  db.collection("post").deleteOne(삭제할데이터, function (에러, 결과) {
+    console.log("삭제완료");
+    if (결과) {
+      console.log(결과);
+    }
+    응답.status(200).send({ message: "success" });
+  });
+});
+
+app.get("/member", function (요청, 응답) {
+  응답.render("member.ejs");
+});
+
+app.post("/member", function (요청, 응답) {
+  db.collection("login").insertOne({ id: 요청.body.email, pw: 요청.body.pw }, function (에러, 결과) {
+    console.log("가입완료");
+    응답.redirect("/login");
   });
 });
