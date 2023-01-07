@@ -84,6 +84,7 @@ app.put("/edit", function (요청, 응답) {
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const session = require("express-session");
+const e = require("express");
 
 app.use(session({ secret: "비밀코드", resave: true, saveUninitialized: false }));
 app.use(passport.initialize());
@@ -187,8 +188,16 @@ app.get("/member", function (요청, 응답) {
 });
 
 app.post("/member", function (요청, 응답) {
-  db.collection("login").insertOne({ id: 요청.body.email, pw: 요청.body.pw }, function (에러, 결과) {
-    console.log("가입완료");
-    응답.redirect("/login");
+  var 가입요청아이디 = 요청.body.email;
+  db.collection("login").findOne({ id: 가입요청아이디 }, function (에러, 결과) {
+    if (결과 == null) {
+      db.collection("login").insertOne({ id: 가입요청아이디, pw: 요청.body.pw }, function (에러, 결과) {
+        console.log("가입완료");
+        응답.redirect("/mypage");
+      });
+    } else if (결과) {
+      console.log("이미 가입된 아이디 입니다.");
+      응답.redirect("/login");
+    }
   });
 });
