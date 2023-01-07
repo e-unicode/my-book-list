@@ -110,6 +110,10 @@ app.put("/edit", function (요청, 응답) {
   );
 });
 
+app.get("/signin", function (요청, 응답) {
+  응답.render("/signin.ejs");
+});
+
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const session = require("express-session");
@@ -184,3 +188,5 @@ passport.deserializeUser(function (아이디, done) {
     done(null, { 결과 });
   });
 });
+
+
