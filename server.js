@@ -58,6 +58,14 @@ app.get("/list", function (요청, 응답) {
     });
 });
 
+app.get('/search', (요청, 응답) => {
+  console.log(요청.query.value);
+  db.collection('post').find({title: 요청.query.value}).toArray((에러, 결과)=>{
+    console.log(결과)
+    응답.render('result.ejs', {posts: 결과});
+  })
+});
+
 app.delete("/delete", function (요청, 응답) {
   console.log(요청.body);
   요청.body._id = parseInt(요청.body._id);
@@ -161,3 +169,5 @@ passport.deserializeUser(function (아이디, done) {
     done(null, 결과);
   });
 });
+
+
