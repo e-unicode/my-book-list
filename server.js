@@ -9,24 +9,14 @@ app.use(methodOverride("_method"));
 
 var db;
 
-MongoClient.connect(
-  "mongodb+srv://rlool:Eun2Eun2@simple-board-cluster.vtup2xr.mongodb.net/?retryWrites=true&w=majority",
-  function (에러, client) {
-    if (에러) return console.log(에러);
-    db = client.db("todoapp");
+MongoClient.connect("mongodb+srv://rlool:Eun2Eun2@simple-board-cluster.vtup2xr.mongodb.net/?retryWrites=true&w=majority", function (에러, client) {
+  if (에러) return console.log(에러);
+  db = client.db("todoapp");
 
-    // db.collection("post").insertOne(
-    //   { 이름: "EUNI", _id: 100, 나이: 20 },
-    //   function (에러, 결과) {
-    //     console.log("저장완료");
-    //   }
-    // );
-
-    app.listen(8080, function () {
-      console.log("listening on 8080");
-    });
-  }
-);
+  app.listen(8080, function () {
+    console.log("listening on 8080");
+  });
+});
 
 app.get("/", function (요청, 응답) {
   응답.render("index.ejs");
@@ -38,32 +28,25 @@ app.get("/write", function (요청, 응답) {
 
 app.post("/add", function (요청, 응답) {
   응답.send("전송완료");
-  db.collection("counter").findOne(
-    { name: "postCount" },
-    function (에러, 결과) {
-      console.log(결과.totalPost);
-      var 총게시물갯수 = 결과.totalPost;
-      db.collection("post").insertOne(
-        {
-          _id: 총게시물갯수 + 1,
-          title: 요청.body.title,
-          artist: 요청.body.artist,
-        },
-        function (에러, 결과) {
-          console.log("저장완료");
-          db.collection("counter").updateOne(
-            { name: "postCount" },
-            { $inc: { totalPost: 1 } },
-            function (에러, 결과) {
-              if (에러) {
-                return console.log(에러);
-              }
-            }
-          );
-        }
-      );
-    }
-  );
+  db.collection("counter").findOne({ name: "postCount" }, function (에러, 결과) {
+    console.log(결과.totalPost);
+    var 총게시물갯수 = 결과.totalPost;
+    db.collection("post").insertOne(
+      {
+        _id: 총게시물갯수 + 1,
+        title: 요청.body.title,
+        artist: 요청.body.artist,
+      },
+      function (에러, 결과) {
+        console.log("저장완료");
+        db.collection("counter").updateOne({ name: "postCount" }, { $inc: { totalPost: 1 } }, function (에러, 결과) {
+          if (에러) {
+            return console.log(에러);
+          }
+        });
+      }
+    );
+  });
 });
 
 app.get("/list", function (요청, 응답) {
@@ -110,17 +93,22 @@ app.put("/edit", function (요청, 응답) {
   );
 });
 
-app.get("/signin", function (요청, 응답) {
-  응답.render("/signin.ejs");
+app.get("/member", function (요청, 응답) {
+  응답.render("member.ejs");
+});
+
+app.post("/member", function (요청, 응답) {
+  응답.redirect("/login");
+  db.collection("login").insertOne({ id: 요청.body.email, pw: 요청.body.pw }, function (에러, 결과) {
+    console.log("가입완료");
+  });
 });
 
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const session = require("express-session");
 
-app.use(
-  session({ secret: "비밀코드", resave: true, saveUninitialized: false })
-);
+app.use(session({ secret: "비밀코드", resave: true, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -140,7 +128,7 @@ app.post(
 
 app.get("/mypage", 로그인했니, function (요청, 응답) {
   console.log(요청.user);
-  응답.render("mypage.ejs", { login: 요청.user });
+  응답.render("mypage.ejs", { 사용자: 요청.user });
 });
 
 function 로그인했니(요청, 응답, next) {
@@ -161,20 +149,15 @@ passport.use(
     },
     function (입력한아이디, 입력한비번, done) {
       //console.log(입력한아이디, 입력한비번);
-      db.collection("login").findOne(
-        { id: 입력한아이디 },
-        function (에러, 결과) {
-          if (에러) return done(에러);
-
-          if (!결과)
-            return done(null, false, { message: "존재하지않는 아이디요" });
-          if (입력한비번 == 결과.pw) {
-            return done(null, 결과);
-          } else {
-            return done(null, false, { message: "비번틀렸어요" });
-          }
+      db.collection("login").findOne({ id: 입력한아이디 }, function (에러, 결과) {
+        if (에러) return done(에러);
+        if (!결과) return done(null, false, { message: "존재하지않는 아이디요" });
+        if (입력한비번 == 결과.pw) {
+          return done(null, 결과);
+        } else {
+          return done(null, false, { message: "비번틀렸어요" });
         }
-      );
+      });
     }
   )
 );
@@ -188,5 +171,3 @@ passport.deserializeUser(function (아이디, done) {
     done(null, { 결과 });
   });
 });
-
-
