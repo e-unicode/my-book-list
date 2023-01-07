@@ -193,11 +193,11 @@ app.post("/member", function (요청, 응답) {
     if (결과 == null) {
       db.collection("login").insertOne({ id: 가입요청아이디, pw: 요청.body.pw }, function (에러, 결과) {
         console.log("가입완료");
-        응답.redirect("/mypage");
+        응답.redirect("/login");
       });
     } else if (결과) {
       console.log("이미 가입된 아이디 입니다.");
-      응답.redirect("/login");
+      응답.redirect("/member");
     }
   });
 });
