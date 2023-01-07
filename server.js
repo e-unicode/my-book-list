@@ -62,7 +62,7 @@ app.get('/search', (요청, 응답) => {
   console.log(요청.query.value);
   db.collection('post').find({title: 요청.query.value}).toArray((에러, 결과)=>{
     console.log(결과)
-    응답.render('result.ejs', {posts: 결과});
+    응답.render('search.ejs', {posts: 결과});
   })
 });
 
