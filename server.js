@@ -58,12 +58,24 @@ app.get("/list", function (요청, 응답) {
     });
 });
 
-app.get('/search', (요청, 응답) => {
-  console.log(요청.query.value);
-  db.collection('post').find({title: 요청.query.value}).toArray((에러, 결과)=>{
-    console.log(결과)
-    응답.render('search.ejs', {posts: 결과});
-  })
+app.get("/search", (요청, 응답) => {
+  var 검색조건 = [
+    {
+      $search: {
+        index: "titleSearch",
+        text: {
+          query: 요청.query.value,
+          path: "title",
+        },
+      },
+    },
+  ];
+  db.collection("post")
+    .aggregate(검색조건)
+    .toArray((에러, 결과) => {
+      console.log(결과);
+      응답.render("search.ejs", { posts: 결과 });
+    });
 });
 
 app.delete("/delete", function (요청, 응답) {
@@ -125,12 +137,12 @@ app.get("/login", function (요청, 응답) {
 });
 
 app.post("/login", passport.authenticate("local", { failureRedirect: "/fail" }), function (요청, 응답) {
-    응답.redirect("/");
+  응답.redirect("/");
 });
 
 app.get("/mypage", 로그인했니, function (요청, 응답) {
   console.log(요청.user);
-  응답.render("mypage.ejs", {사용자 : 요청.user});
+  응답.render("mypage.ejs", { 사용자: 요청.user });
 });
 
 function 로그인했니(요청, 응답, next) {
@@ -141,7 +153,9 @@ function 로그인했니(요청, 응답, next) {
   }
 }
 
-passport.use(new LocalStrategy({
+passport.use(
+  new LocalStrategy(
+    {
       usernameField: "id",
       passwordField: "pw",
       session: true,
@@ -158,7 +172,9 @@ passport.use(new LocalStrategy({
           return done(null, false, { message: "비번틀렸어요" });
         }
       });
-}));
+    }
+  )
+);
 
 passport.serializeUser(function (user, done) {
   done(null, user.id);
@@ -169,5 +185,3 @@ passport.deserializeUser(function (아이디, done) {
     done(null, 결과);
   });
 });
-
-
