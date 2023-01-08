@@ -22,9 +22,20 @@
         <div>채팅방</div>
         <input id="input1">
         <button id="send">서버에 메세지 보내기</button>
+        <button id="room1">채팅방1입장</button>
+        <button id="room1-send">채팅방1에서 메세지 보내기</button>
         <div id="content"></div>
         <script>
             var socket = io();
+
+            $('#room1-send').click(function(){
+                socket.emit('room1-send', '반가워채팅방1사람들아');
+            })
+
+            $('#room1').click(function(){
+                socket.emit('joinroom', '채팅방입장시켜줘');
+            })
+
             $('#send').click(function () {
                 socket.emit('user-send', $('#input1').val());
             });
